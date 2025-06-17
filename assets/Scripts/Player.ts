@@ -1,14 +1,107 @@
-import { _decorator, Component, Node } from 'cc';
+import {
+  _decorator,
+  Component,
+  Node,
+  Tween,
+  tween,
+  Vec3,
+  input,
+  Input,
+  KeyCode,
+  view,
+  UITransform,
+  sys,
+  director,
+  game,
+} from "cc";
 const { ccclass, property } = _decorator;
 
-@ccclass('Player')
+@ccclass("Player")
 export class Player extends Component {
-    start() {
+  @property
+  moveSpeed: number = 200;
 
-    }
+  @property
+  jumpHeight: number = 100;
 
-    update(deltaTime: number) {
-        
+  @property
+  jumpDuration: number = 0.5;
+
+  private isJumping: boolean = false;
+  private moveDirection: number = 0;
+
+  onLoad(): void {
+    // Register input events
+    input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+    input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
+  }
+
+  onDestroy(): void {
+    // Unregister input events
+    input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+    input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
+  }
+
+  private onKeyDown(event: any): void {
+    switch (event.keyCode) {
+      case KeyCode.ARROW_RIGHT:
+      case KeyCode.KEY_D:
+        this.moveDirection = 1;
+        break;
+      case KeyCode.ARROW_LEFT:
+      case KeyCode.KEY_A:
+        this.moveDirection = -1;
+        break;
+      case KeyCode.SPACE:
+        this.jump();
+        break;
     }
+  }
+
+  private onKeyUp(event: any): void {
+    if (
+      event.keyCode === KeyCode.ARROW_RIGHT ||
+      event.keyCode === KeyCode.KEY_D ||
+      event.keyCode === KeyCode.ARROW_LEFT ||
+      event.keyCode === KeyCode.KEY_A
+    ) {
+      this.moveDirection = 0;
+    }
+  }
+
+  private jump() {
+    if (this.isJumping) return;
+
+    this.isJumping = true;
+    const startY = this.node.position.y;
+
+    tween(this.node)
+      .to(this.jumpDuration / 2, {
+        position: new Vec3(
+          this.node.position.x,
+          startY + this.jumpHeight,
+          this.node.position.z
+        ),
+      })
+      .to(this.jumpDuration / 2, {
+        position: new Vec3(this.node.position.x, startY, this.node.position.z),
+      })
+      .call(() => {
+        this.isJumping = false;
+      })
+      .start();
+  }
+
+  update(deltaTime: number): void {
+    if (this.moveDirection !== 0) {
+      // Calculate movement
+      const moveAmount = this.moveSpeed * deltaTime * this.moveDirection;
+      const newX = this.node.position.x + moveAmount;
+
+      // Update position
+      this.node.setPosition(
+        new Vec3(newX, this.node.position.y, this.node.position.z)
+      );
+    }
+  }
 }
-
