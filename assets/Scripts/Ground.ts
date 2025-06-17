@@ -1,14 +1,16 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node } from "cc";
 const { ccclass, property } = _decorator;
 
-@ccclass('Ground')
+@ccclass("Ground")
 export class Ground extends Component {
-    start() {
+  @property(Node)
+  ground1: Node = null;
 
-    }
+  @property(Node)
+  ground2: Node = null;
 
-    update(deltaTime: number) {
-        
-    }
+  
+  start() {}
+
+  update(deltaTime: number) {}
 }
-
