@@ -29,6 +29,7 @@ export class Player extends Component {
 
   private isJumping: boolean = false;
   private moveDirection: number = 0;
+  private isShiftPressed: boolean = false;
 
   onLoad(): void {
     // Register input events
@@ -52,6 +53,10 @@ export class Player extends Component {
       case KeyCode.KEY_A:
         this.moveDirection = -1;
         break;
+      case KeyCode.SHIFT_LEFT:
+      case KeyCode.SHIFT_RIGHT:
+        this.isShiftPressed = true;
+        break;
       case KeyCode.SPACE:
         this.jump();
         break;
@@ -67,6 +72,12 @@ export class Player extends Component {
     ) {
       this.moveDirection = 0;
     }
+    if (
+      event.keyCode === KeyCode.SHIFT_LEFT ||
+      event.keyCode === KeyCode.SHIFT_RIGHT
+    ) {
+      this.isShiftPressed = false;
+    }
   }
 
   private jump() {
@@ -75,11 +86,16 @@ export class Player extends Component {
     this.isJumping = true;
     const startY = this.node.position.y;
 
+    // Calculate jump height based on shift key
+    const finalJumpHeight = this.isShiftPressed
+      ? this.jumpHeight * 2
+      : this.jumpHeight;
+
     tween(this.node)
       .to(this.jumpDuration / 2, {
         position: new Vec3(
           this.node.position.x,
-          startY + this.jumpHeight,
+          startY + finalJumpHeight,
           this.node.position.z
         ),
       })
