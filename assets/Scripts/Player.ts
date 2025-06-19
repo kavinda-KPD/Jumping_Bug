@@ -13,6 +13,10 @@ import {
   sys,
   director,
   game,
+  Animation,
+  AnimationClip,
+  Sprite,
+  resources,
 } from "cc";
 const { ccclass, property } = _decorator;
 
@@ -30,17 +34,69 @@ export class Player extends Component {
   private isJumping: boolean = false;
   private moveDirection: number = 0;
   private isShiftPressed: boolean = false;
+  private animation: Animation | null = null;
+  private sprite: Sprite | null = null;
+  private isMoving: boolean = false;
 
   onLoad(): void {
     // Register input events
     input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
+
+    // Get the animation component
+    this.animation = this.getComponent(Animation);
+    this.sprite = this.getComponent(Sprite);
+
+    // If no animation component exists, add one
+    if (!this.animation) {
+      this.animation = this.addComponent(Animation);
+    }
+
+    // Load and set up the running animation
+    this.setupRunningAnimation();
   }
 
   onDestroy(): void {
     // Unregister input events
     input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
+
+    // Clean up animation
+    if (this.animation) {
+      this.animation.stop();
+    }
+  }
+
+  private setupRunningAnimation(): void {
+    // Load the running animation clip
+    resources.load(
+      "Animations/Monster/monster-running.animation",
+      AnimationClip,
+      (err, clip) => {
+        if (err) {
+          console.error("Failed to load monster running animation:", err);
+          return;
+        }
+
+        // Set the clips array for the animation component
+        this.animation!.clips = [clip];
+
+        // Set the default clip
+        this.animation!.defaultClip = clip;
+      }
+    );
+  }
+
+  private playRunningAnimation(): void {
+    if (this.animation && this.animation.defaultClip) {
+      this.animation.play();
+    }
+  }
+
+  private stopRunningAnimation(): void {
+    if (this.animation) {
+      this.animation.stop();
+    }
   }
 
   private onKeyDown(event: any): void {
@@ -48,10 +104,12 @@ export class Player extends Component {
       case KeyCode.ARROW_RIGHT:
       case KeyCode.KEY_D:
         this.moveDirection = 1;
+        this.startRunningAnimation();
         break;
       case KeyCode.ARROW_LEFT:
       case KeyCode.KEY_A:
         this.moveDirection = -1;
+        this.startRunningAnimation();
         break;
       case KeyCode.SHIFT_LEFT:
       case KeyCode.SHIFT_RIGHT:
@@ -71,12 +129,21 @@ export class Player extends Component {
       event.keyCode === KeyCode.KEY_A
     ) {
       this.moveDirection = 0;
+      this.isMoving = false;
+      this.stopRunningAnimation();
     }
     if (
       event.keyCode === KeyCode.SHIFT_LEFT ||
       event.keyCode === KeyCode.SHIFT_RIGHT
     ) {
       this.isShiftPressed = false;
+    }
+  }
+
+  private startRunningAnimation(): void {
+    if (!this.isMoving) {
+      this.isMoving = true;
+      this.playRunningAnimation();
     }
   }
 
@@ -130,6 +197,11 @@ export class Player extends Component {
       this.node.setPosition(
         new Vec3(newX, this.node.position.y, this.node.position.z)
       );
+
+      // Flip the sprite based on movement direction
+      if (this.sprite && this.moveDirection !== 0) {
+        this.sprite.node.scale = new Vec3(this.moveDirection, 1, 1);
+      }
     }
   }
 }
