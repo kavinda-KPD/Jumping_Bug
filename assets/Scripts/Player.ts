@@ -92,16 +92,28 @@ export class Player extends Component {
       : this.jumpHeight;
 
     tween(this.node)
-      .to(this.jumpDuration / 2, {
-        position: new Vec3(
-          this.node.position.x,
-          startY + finalJumpHeight,
-          this.node.position.z
-        ),
-      })
-      .to(this.jumpDuration / 2, {
-        position: new Vec3(this.node.position.x, startY, this.node.position.z),
-      })
+      .to(
+        this.jumpDuration / 2,
+        {
+          position: new Vec3(
+            this.node.position.x,
+            startY + finalJumpHeight,
+            this.node.position.z
+          ),
+        },
+        { easing: "smooth" }
+      )
+      .to(
+        this.jumpDuration / 2,
+        {
+          position: new Vec3(
+            this.node.position.x,
+            startY,
+            this.node.position.z
+          ),
+        },
+        { easing: "smooth" }
+      )
       .call(() => {
         this.isJumping = false;
       })
