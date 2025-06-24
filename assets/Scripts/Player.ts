@@ -31,12 +31,19 @@ export class Player extends Component {
   @property
   jumpDuration: number = 0.5;
 
+  @property
+  idleAnimationSpeed: number = 0.5; // Slower animation speed when idle
+
+  @property
+  runningAnimationSpeed: number = 1.0; // Normal animation speed when running
+
   private isJumping: boolean = false;
   private moveDirection: number = 0;
   private isShiftPressed: boolean = false;
   private animation: Animation | null = null;
   private sprite: Sprite | null = null;
   private isMoving: boolean = false;
+  private currentAnimationSpeed: number = 0.5;
 
   onLoad(): void {
     // Register input events
@@ -83,12 +90,25 @@ export class Player extends Component {
 
         // Set the default clip
         this.animation!.defaultClip = clip;
+
+        // Start the idle running animation immediately
+        this.startIdleAnimation();
       }
     );
   }
 
+  private startIdleAnimation(): void {
+    if (this.animation && this.animation.defaultClip) {
+      this.currentAnimationSpeed = this.idleAnimationSpeed;
+      this.animation.defaultClip.speed = this.currentAnimationSpeed;
+      this.animation.play();
+    }
+  }
+
   private playRunningAnimation(): void {
     if (this.animation && this.animation.defaultClip) {
+      this.currentAnimationSpeed = this.runningAnimationSpeed;
+      this.animation.defaultClip.speed = this.currentAnimationSpeed;
       this.animation.play();
     }
   }
@@ -130,7 +150,7 @@ export class Player extends Component {
     ) {
       this.moveDirection = 0;
       this.isMoving = false;
-      this.stopRunningAnimation();
+      this.startIdleAnimation(); // Return to idle animation instead of stopping
     }
     if (
       event.keyCode === KeyCode.SHIFT_LEFT ||
