@@ -1,28 +1,46 @@
-name: Deploy Jumping Bug to AWS
+name: Build and Deploy Cocos Game
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # (Optional: Add build step if not pre-built)
-      - name: Deploy to EC2 via SSH
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Install Cocos Creator dependencies (if needed)
+      - name: Install dependencies
+        run: |
+          npm install -g cocos-creator-cli
+          npm install
+
+      # Build the project (Web Desktop)
+      - name: Build Cocos Creator project
+        run: |
+          creator-cli build --platform web-desktop --build-path ./build
+
+      # Deploy to EC2 via SSH
+      - name: Deploy to AWS EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.AWS_EC2_IP }}
           username: ubuntu
           key: ${{ secrets.AWS_EC2_SSH_KEY }}
-          source: "build/web-mobile/*"
+          source: "build/web-desktop/*"
           target: "/var/www/html"
-          rm: true # Delete old files before upload
+          rm: true  # Remove old files before upload
+          overwrite: true
 
+      # Restart Nginx
       - name: Restart Nginx
         uses: appleboy/ssh-action@v0.1.4
         with:
@@ -30,4 +48,5 @@ jobs:
           username: ubuntu
           key: ${{ secrets.AWS_EC2_SSH_KEY }}
           script: |
+            sudo chown -R ubuntu:ubuntu /var/www/html
             sudo systemctl restart nginx
