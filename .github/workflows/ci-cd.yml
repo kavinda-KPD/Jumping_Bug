@@ -16,30 +16,32 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "16"
-
+          
+      - name: Install Cocos Creator CLI locally
+        run: |
+          npm install @cocos/creator-cli --save-dev
+        working-directory: ./
+        
       - name: Install Project Dependencies
         run: npm install
         working-directory: ./
-
+        
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libglu1-mesa libxi-dev
-
+        
       - name: Build Cocos Creator Project
         run: |
-          # Find the cocos executable path
-          COCOS_PATH=$(find . -name cocos -type f -executable | head -n 1)
-
-          if [ -z "$COCOS_PATH" ]; then
-            echo "Cocos executable not found! Trying to run via npx..."
-            npx --yes cocos build --platform web-mobile --output ./build/web-mobile
-          else
-            echo "Using cocos executable at: $COCOS_PATH"
-            $COCOS_PATH build --platform web-mobile --output ./build/web-mobile
-          fi
+          # Use the locally installed cocos executable
+          ./node_modules/.bin/creator-cli build --platform web-mobile --output ./build/web-mobile
         working-directory: ./
-
+        
+      - name: Verify Build Output
+        run: |
+          ls -la ./build/web-mobile
+          [ -f ./build/web-mobile/index.html ] && echo "Build successful" || echo "Build failed"
+        
       - name: Deploy to EC2
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
