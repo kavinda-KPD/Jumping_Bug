@@ -2,8 +2,7 @@ name: Jumping Bug CI/CD to EC2
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
   workflow_dispatch:
 
 jobs:
@@ -22,14 +21,23 @@ jobs:
         run: npm install
         working-directory: ./
 
-      - name: Build Cocos Creator Project
+      - name: Install Build Dependencies
         run: |
-          # Install required dependencies
           sudo apt-get update
           sudo apt-get install -y libglu1-mesa libxi-dev
-          
-          # Run build command directly (no global install needed)
-          npx --yes cocos build --platform web-mobile --output ./build/web-mobile
+
+      - name: Build Cocos Creator Project
+        run: |
+          # Find the cocos executable path
+          COCOS_PATH=$(find . -name cocos -type f -executable | head -n 1)
+
+          if [ -z "$COCOS_PATH" ]; then
+            echo "Cocos executable not found! Trying to run via npx..."
+            npx --yes cocos build --platform web-mobile --output ./build/web-mobile
+          else
+            echo "Using cocos executable at: $COCOS_PATH"
+            $COCOS_PATH build --platform web-mobile --output ./build/web-mobile
+          fi
         working-directory: ./
 
       - name: Deploy to EC2
