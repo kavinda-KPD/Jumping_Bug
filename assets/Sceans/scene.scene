@@ -1547,7 +1547,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 256.42578125,
+      "width": 353.2421875,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -1577,7 +1577,7 @@
       "b": 12,
       "a": 255
     },
-    "_string": "Health 🥷🏻 :  5",
+    "_string": "Health try 1 🥷🏻 :  5",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
     "_actualFontSize": 40,
