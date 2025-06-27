@@ -3,7 +3,8 @@ name: Jumping Bug CI/CD to EC2
 on:
   push:
     branches:
-      - main
+      - master # Changed from 'main' to 'master'
+  workflow_dispatch: # Added for manual triggering
 
 jobs:
   build-and-deploy:
@@ -37,3 +38,4 @@ jobs:
           chmod 600 private_key.pem
           rsync -avz --delete -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" ./build/web-mobile/ $EC2_USER@$EC2_HOST:/var/www/jumping-bug/
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "sudo systemctl restart nginx"
+          rm -f private_key.pem  # Added security cleanup
