@@ -3,8 +3,8 @@ name: Jumping Bug CI/CD to EC2
 on:
   push:
     branches:
-      - master # Changed from 'main' to 'master'
-  workflow_dispatch: # Added for manual triggering
+      - master
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -24,8 +24,12 @@ jobs:
 
       - name: Build Cocos Creator Project
         run: |
-          npm install -g @cocos/creator-cli
-          npx creator-cli build --platform web-mobile --output ./build/web-mobile
+          # Install required dependencies
+          sudo apt-get update
+          sudo apt-get install -y libglu1-mesa libxi-dev
+          
+          # Run build command directly (no global install needed)
+          npx --yes cocos build --platform web-mobile --output ./build/web-mobile
         working-directory: ./
 
       - name: Deploy to EC2
@@ -38,4 +42,4 @@ jobs:
           chmod 600 private_key.pem
           rsync -avz --delete -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" ./build/web-mobile/ $EC2_USER@$EC2_HOST:/var/www/jumping-bug/
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "sudo systemctl restart nginx"
-          rm -f private_key.pem  # Added security cleanup
+          rm -f private_key.pem
