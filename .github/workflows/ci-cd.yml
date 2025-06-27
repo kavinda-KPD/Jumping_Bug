@@ -16,32 +16,44 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "16"
-          
-      - name: Install Cocos Creator CLI locally
-        run: |
-          npm install @cocos/creator-cli --save-dev
-        working-directory: ./
-        
+
       - name: Install Project Dependencies
         run: npm install
         working-directory: ./
-        
+
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libglu1-mesa libxi-dev
-        
+
+      - name: Download and Install Cocos Creator
+        run: |
+          # Download Cocos Creator
+          wget https://digitalocean.cocos2d-x.org/Creator/v3.8.0/CocosCreator_v3.8.0_linux.run
+
+          # Make it executable
+          chmod +x CocosCreator_v3.8.0_linux.run
+
+          # Install silently
+          ./CocosCreator_v3.8.0_linux.run --mode unattended --install-dir ./cocos-creator
+
+          # Add to PATH
+          echo "$PWD/cocos-creator/CocosCreator.app/Contents/Resources/tools/creator-cli" >> $GITHUB_PATH
+
       - name: Build Cocos Creator Project
         run: |
-          # Use the locally installed cocos executable
-          ./node_modules/.bin/creator-cli build --platform web-mobile --output ./build/web-mobile
+          # Verify installation
+          creator-cli --version
+
+          # Run build
+          creator-cli build --platform web-mobile --output ./build/web-mobile
         working-directory: ./
-        
+
       - name: Verify Build Output
         run: |
           ls -la ./build/web-mobile
           [ -f ./build/web-mobile/index.html ] && echo "Build successful" || echo "Build failed"
-        
+
       - name: Deploy to EC2
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
