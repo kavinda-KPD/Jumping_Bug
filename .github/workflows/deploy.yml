@@ -1,0 +1,33 @@
+name: Deploy Jumping Bug to AWS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # (Optional: Add build step if not pre-built)
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.AWS_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          source: "build/web-mobile/*"
+          target: "/var/www/html"
+          rm: true # Delete old files before upload
+
+      - name: Restart Nginx
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.AWS_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_EC2_SSH_KEY }}
+          script: |
+            sudo systemctl restart nginx
