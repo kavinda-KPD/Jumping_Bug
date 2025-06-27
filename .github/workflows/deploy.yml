@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # (Optional: Add build step if not pre-built)
+      # (Optional: Add build step if not pre-built) test
       - name: Deploy to EC2 via SSH
         uses: appleboy/scp-action@v0.1.4
         with:
