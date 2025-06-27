@@ -14,9 +14,9 @@ jobs:
 
       - name: Verify Build Output
         run: |
-          if [ -d "./build/web-mobile" ] && [ -f "./build/web-mobile/index.html" ]; then
+          if [ -d "./build/web-desktop" ] && [ -f "./build/web-desktop/index.html" ]; then
             echo "Build folder exists and contains index.html"
-            ls -la ./build/web-mobile
+            ls -la ./build/web-desktop
           else
             echo "Error: Build folder or index.html not found"
             exit 1
@@ -31,6 +31,6 @@ jobs:
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
-          rsync -avz --delete -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" ./build/web-mobile/ $EC2_USER@$EC2_HOST:/var/www/jumping-bug/
+          rsync -avz --delete -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" ./build/web-desktop/ $EC2_USER@$EC2_HOST:/var/www/jumping-bug/
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "sudo systemctl restart nginx"
           rm -f private_key.pem
